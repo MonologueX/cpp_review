@@ -42,9 +42,28 @@ public:
     {
         Expand(n);
     }
-    void Resize(size_t n)
+    void Resize(size_t n, char ch = '\0')
     {
+        if (n < m_size)
+        {
+            m_size = n;
+            m_str[m_size] = '\0';
+        }
+        else 
+        {
+            if (n > m_capacity)
+            {
+                Expand(n);
+            }
+            for (size_t i = m_size; i < n; i++)
+            {
+                m_str[i] = ch;
+            }
+            m_str[n] = '\0';
+            m_size = n;
+        }
     }
+
     void Expand(size_t n)
     {
         if (n > m_capacity)
@@ -56,6 +75,7 @@ public:
             m_capacity = n;
         }
     }
+
     void PushBack(char ch)
     {
         //if (m_size == m_capacity)
@@ -66,6 +86,7 @@ public:
         //m_str[++m_size] = '\0';
         Insert(m_size, ch);
     }
+
     void Append(const char* str)
     {
         size_t len = strlen(str);
@@ -118,8 +139,27 @@ public:
         m_size += len;
     }
 
-    void PopBack();
-    void Erase(size_t pos, size_t len);
+    void PopBack()
+    {
+        assert(m_size>0);
+        --m_size;
+        m_str[m_size] = '\0';
+    }
+
+    void Erase(size_t pos, size_t len)
+    {
+        assert(pos<m_size);
+        if (pos + len >= m_size)
+        {
+            m_str[pos] = '\0';
+            m_size = pos;
+        }
+        else 
+        {
+            strcpy(m_str+pos, m_str+pos+len);
+            m_size -= len;
+        }
+    }
 
     size_t Size()
     {
@@ -139,20 +179,117 @@ public:
         return m_str[pos];
     }
 
-    size_t Find(char ch);
-    size_t Find(const char* sub);
-    size_t Find(char c,size_t pos) const;
-    size_t rFind(char c,size_t pos );
-    string Substr(size_t pos, size_t n) const;
+    size_t Find(char ch)
+    {
+        for (size_t i = 0; i < m_size; i++)
+        {
+            if (m_str[i] == ch)
+            {
+                return i;
+            }
+        }
+        return npos;
+    }
+    size_t Find(const char* sub) const
+    {
+        char* src = m_str;
+        while (*src)
+        {
+            char* src_temp = src;
+            const char* sub_temp = sub;
+            while (*sub_temp && *src_temp == *sub_temp)
+            {
+                ++src_temp;
+                ++sub_temp;
+            }
+            if (*sub_temp == '\0')
+            {
+                return src-m_str;
+            }
+            else 
+            {
+                ++src;
+            }
+        }
+        return npos;
+    }
 
+    String Substr(size_t pos, size_t n) const
+    {
+        String s;
+        assert(pos > 0 && pos < m_size);
+        assert(n>0);
+        for (size_t i = 0; i < n && i < m_size; i++)
+        {
+            s += m_str[pos+i];
+        }
+        return s;
+    }
 
-    bool operator<(const String& s);
-    bool operator<=(const String& s);
-    bool operator>(const String& s);
-    bool operator>=(const String& s);
-    bool operator==(const String& s);
-    bool operator!=(const String& s);
-
+    bool operator<(const String& s) const
+    {
+        const char* str1 = m_str;
+        const char* str2 = s.m_str;
+        while (*str1 && *str2)
+        {
+            if (*str1 < *str2)
+            {
+                return true;
+            }
+            else if (*str1 > *str2)
+            {
+                return false;
+            }
+            else 
+            {
+                ++str1;
+                ++str2;
+            }
+        }
+        if (*str1 == '\0' && *str2 != '\0')
+        {
+            return true;
+        }
+        return false;
+    }
+    bool operator<=(const String& s) const 
+    {
+        return *this < s || *this == s;
+    }
+    bool operator>(const String& s) const 
+    {
+        return !(*this <= s);
+    }
+    bool operator>=(const String& s) const 
+    {
+        return !(*this < s);
+    }
+    bool operator==(const String& s) const 
+    {
+        const char* str1 = m_str;
+        const char* str2 = s.m_str;
+        while (*str1 && *str2)
+        {
+            if (*str1 != *str2)
+            {
+                return false;
+            }
+            else 
+            {
+                ++str1;
+                ++str2;
+            }
+        }
+        if (*str1 == '\0' && *str2 == '\0')
+        {
+            return true;
+        }
+        return false;
+    }
+    bool operator!=(const String& s) const 
+    {
+        return !(*this == s);
+    }
     String& operator+=(const String& s)
     {
         this->Append(s.m_str);
@@ -197,7 +334,10 @@ private:
     char* m_str;
     size_t m_size;
     size_t m_capacity;
+public:
+    static size_t npos;
 };
+size_t String::npos = -1;
 
 void TestString()
 {
@@ -207,8 +347,15 @@ void TestString()
     //s1.Insert(5, ' ');
     //s1.Append("world");
     //s1.Insert(0, 'h');
-    s1 += " World";
-    cout << s1.c_str() << endl;
+    //s1 += " World";
+    //cout << s1.c_str() << endl;
+    size_t pos = s1.Find("llo");
+    if (pos != String::npos)
+    {
+        cout << "找到了: " << pos << endl;
+    }
+    String str = s1.Substr(1, 2);
+    cout << str.c_str() << endl;
 }
 
 #if 0
